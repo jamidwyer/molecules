@@ -41,6 +41,27 @@
 				hydrogen.rotation.x += 0.1;
 				hydrogen.rotation.y += 0.1;
 				renderer.render( scene, camera );
+
+				renderer.domElement.addEventListener('mousedown', function(event) {
+					alert("click!");
+    var vector = new THREE.Vector3(
+        renderer.devicePixelRatio * (event.pageX - this.offsetLeft) / this.width * 2 - 1,
+        -renderer.devicePixelRatio * (event.pageY - this.offsetTop) / this.height * 2 + 1,
+        0
+    );
+
+    projector.unprojectVector(vector, camera);
+
+    var raycaster = new THREE.Raycaster(
+        camera.position,
+        vector.sub(camera.position).normalize()
+    );
+
+    var intersects = raycaster.intersectObjects(OBJECTS);
+    if (intersects.length) {
+        console.log(intersects[0]);
+    }
+}, false);
 			}
 			render();
 
