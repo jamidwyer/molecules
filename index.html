@@ -2,12 +2,25 @@
 <html>
 	<head>
 		<meta charset=utf-8>
-		<title>My first Three.js app</title>
+		<title>Atoms</title>
 		<link rel="stylesheet" href="css/style.css" media="all" />
+		<script src="https://npmcdn.com/vue/dist/vue.js"></script>
+	  <script src="js/app.js"></script>
 	</head>
 	<body>
 		<script src="js/three.js"></script>
 		<script>
+			//use chemistry to decide what binds
+			//allow user to change atoms
+			//filter by organic or not
+			//build DNA
+			//associative array of atom colors
+			//each atom has properties
+			//on click, show properties
+
+			//each atom has bonds
+			//draw graph of energies or something
+
 			var hydrogenColor = "0x0761a0";
 			// TODO: move JavaScript
 			var scene = new THREE.Scene();
@@ -16,12 +29,6 @@
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
-
-			var radius = 1;
-			var geometry = new THREE.SphereGeometry( radius, 16, 16 );
-			var material = new THREE.MeshLambertMaterial( { color: 0x0761a0 } );
-			var hydrogen = new THREE.Mesh( geometry, material );
-			scene.add( hydrogen );
 
 			var pointLight =
 			  new THREE.PointLight(0xFFFFFF);
@@ -36,6 +43,13 @@
 
 			camera.position.z = 5;
 
+			var radius = 1;
+			var geometry = new THREE.SphereGeometry( radius, 16, 16 );
+			var material = new THREE.MeshLambertMaterial( { color: 0x0761a0 } );
+			var hydrogen = new THREE.Mesh( geometry, material );
+			scene.add( hydrogen );
+
+
 			function render() {
 				requestAnimationFrame( render );
 				hydrogen.rotation.x += 0.1;
@@ -44,27 +58,35 @@
 
 				renderer.domElement.addEventListener('mousedown', function(event) {
 					alert("click!");
-    var vector = new THREE.Vector3(
-        renderer.devicePixelRatio * (event.pageX - this.offsetLeft) / this.width * 2 - 1,
-        -renderer.devicePixelRatio * (event.pageY - this.offsetTop) / this.height * 2 + 1,
-        0
-    );
+    			var vector = new THREE.Vector3(
+        		renderer.devicePixelRatio * (event.pageX - this.offsetLeft) / this.width * 2 - 1,
+        		-renderer.devicePixelRatio * (event.pageY - this.offsetTop) / this.height * 2 + 1,
+        		0
+    			);
 
-    projector.unprojectVector(vector, camera);
+    			projector.unprojectVector(vector, camera);
 
-    var raycaster = new THREE.Raycaster(
-        camera.position,
-        vector.sub(camera.position).normalize()
-    );
+			    var raycaster = new THREE.Raycaster(
+			        camera.position,
+			        vector.sub(camera.position).normalize()
+			    );
 
-    var intersects = raycaster.intersectObjects(OBJECTS);
-    if (intersects.length) {
-        console.log(intersects[0]);
-    }
-}, false);
-			}
-			render();
+			    var intersects = raycaster.intersectObjects(OBJECTS);
+			    if (intersects.length) {
+			        console.log(intersects[0]);
+			    }
+			}, false);
+		}
+		render();
 
 		</script>
-	</body>
+		<div id="page">
+		   <h1>Atoms</h1>
+		   <template v-for="atom in atoms">
+		    <div class="square">
+		      {{atom.modelColor}}
+		    </div>
+		  </template>
+		</div>
+		</body>
 </html>
