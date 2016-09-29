@@ -110,7 +110,7 @@ window.onload = function () {
           "atomicNumber": 9,
           "modelColor": 0x4ed223,
           "name": "Fluorine",
-          "radius": 150,
+          "radius": 175,
           "symbol": "F"
         }
 
@@ -140,6 +140,42 @@ window.onload = function () {
     },
 
     methods: {
+      renderScene: function() {
+        requestAnimationFrame( this.renderScene );
+        //TODO: get them moving!
+
+        var atomCount = this.shownAtoms.length;
+        var i = 0;
+        for (i = 0; i<atomCount; i++) {
+//          this.shownAtoms[i].rotation.x += 0.1;
+  //        this.shownAtoms[i].rotation.y += 0.1;
+          this.shownAtoms[i].position.set( this.shownAtoms[i].position.x+0.001, this.shownAtoms[i].position.y+0.001, this.shownAtoms[i].position.z+0.001 );
+        }
+        this.renderer.render( this.scene, this.camera );
+
+        var self = this;
+        this.renderer.domElement.addEventListener('mousedown', function(event) {
+          alert("click!");
+          var vector = new THREE.Vector3(
+            self.renderer.devicePixelRatio * (event.pageX - this.offsetLeft) / this.width * 2 - 1,
+            -self.renderer.devicePixelRatio * (event.pageY - this.offsetTop) / this.height * 2 + 1,
+            0
+          );
+
+//      			projector.unprojectVector(vector, camera);
+
+          var raycaster = new THREE.Raycaster(
+              self.camera.position,
+              vector.sub(self.camera.position).normalize()
+          );
+
+          var intersects = raycaster.intersectObjects(self.shownAtoms);
+          if (intersects.length) {
+              console.log(intersects[0]);
+          }
+        }, false);
+
+      },
       setScene: function() {
         var scene = new THREE.Scene();
   			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -162,43 +198,15 @@ window.onload = function () {
   			camera.position.z = 5;
 
         this.scene = scene;
-
-        function render() {
-  				requestAnimationFrame( render );
-          //TODO: get them moving!
-  				hydrogen.rotation.x += 0.1;
-  				hydrogen.rotation.y += 0.1;
-  				renderer.render( scene, camera );
-
-  				renderer.domElement.addEventListener('mousedown', function(event) {
-  					alert("click!");
-      			var vector = new THREE.Vector3(
-          		renderer.devicePixelRatio * (event.pageX - this.offsetLeft) / this.width * 2 - 1,
-          		-renderer.devicePixelRatio * (event.pageY - this.offsetTop) / this.height * 2 + 1,
-          		0
-      			);
-
-      			projector.unprojectVector(vector, camera);
-
-  			    var raycaster = new THREE.Raycaster(
-  			        camera.position,
-  			        vector.sub(camera.position).normalize()
-  			    );
-
-  			    var intersects = raycaster.intersectObjects(OBJECTS);
-  			    if (intersects.length) {
-  			        console.log(intersects[0]);
-  			    }
-  			}, false);
-  		}
-  		render();
+        this.camera = camera;
+        this.renderer = renderer;
+        this.renderScene();
       },
       loadRandom: function (number) {
         var i = 0;
         for (i = 0; i < number; i++) {
           //TODO: getting data from same place it ends up. not good.
           var newAtom = this.atoms[Math.floor(Math.random()*this.atoms.length)];
-          this.shownAtoms.push(newAtom);
           //TODO: different sizes
           var radius = newAtom.radius/1000;
           console.log(radius);
@@ -207,8 +215,9 @@ window.onload = function () {
     			var material = new THREE.MeshLambertMaterial( { color: newAtom.modelColor } );
     			var atom = new THREE.Mesh( geometry, material );
           //TODO: set positions randomly around screen
-          atom.position.set( i*0.5, i*0.5, i*0.5 );
+          atom.position.set( Math.floor(Math.random()*i*0.5), Math.floor(Math.random()*i*0.5), Math.floor(Math.random()*i*0.5) );
     			this.scene.add( atom );
+          this.shownAtoms.push(atom);
         }
       }
     }
