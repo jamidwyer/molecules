@@ -1,4 +1,7 @@
 window.onload = function () {
+  var raycaster = new THREE.Raycaster(); // create once
+  var mouse = new THREE.Vector2(); // create once
+
   var page = new Vue({
 
     el: '#page',
@@ -6,12 +9,14 @@ window.onload = function () {
     //van der waals radii are in pm
     //masses are in u
     //boiling points are in C
+    //electronAffinity is kJ/mol
     data: {
       atoms: [
         {
           "atomicMass": "1.00794",
           "atomicNumber": 1,
           "boilingPoint": "-252.9",
+          "electronAffinity": 73,
           "electronConfiguration": "1s1",
           "name": "Hydrogen",
           "modelColor": 0xeef4f4,
@@ -30,6 +35,7 @@ window.onload = function () {
           "atomicNumber": 3,
           "atomicMass": "6.941",
           "boilingPoint": "2447",
+          "electronAffinity": 60,
           "modelColor": 0xabaae4,
           "name": "Lithium",
           "radius": 220,
@@ -39,6 +45,7 @@ window.onload = function () {
           "atomicNumber": 4,
           "atomicMass": "9.012182",
           "boilingPoint": "5378",
+          "electronAffinity": -231,
           "modelColor": 0x2b7456,
           "name": "Beryllium",
           "radius": 190,
@@ -140,63 +147,67 @@ window.onload = function () {
     },
 
     methods: {
+      renderData: function(event) {
+        mouse.x = event.pageX;
+	      mouse.y = - event.pageY;
+        console.log(mouse);
+      	raycaster.setFromCamera( mouse, this.camera );
+
+      	// calculate objects intersecting the picking ray
+      	var intersects = raycaster.intersectObjects( this.shownAtoms );
+        console.log(this.shownAtoms);
+        console.log(intersects);
+
+      	for ( var i = 0; i < intersects.length; i++ ) {
+      		intersects[ i ].object.material.color.set( 0xff0000 );
+          console.log(intersects[0].object.userData.name);
+      	}
+
+      	this.renderer.render( this.scene, this.camera );
+
+      },
       renderScene: function() {
         requestAnimationFrame( this.renderScene );
-        //TODO: get them moving!
 
         var atomCount = this.shownAtoms.length;
         var i = 0;
-        for (i = 0; i<atomCount; i++) {
+        for (i = 0; i < atomCount; i++) {
+          //TODO: get them moving in a way that makes sense
+          // will ionic bond occur? http://chem.libretexts.org/Core/Organic_Chemistry/Fundamentals/Ionic_and_Covalent_Bonds
+          // otherwise, similar electron affinity will form covalent
 //          this.shownAtoms[i].rotation.x += 0.1;
   //        this.shownAtoms[i].rotation.y += 0.1;
-          this.shownAtoms[i].position.set( this.shownAtoms[i].position.x+0.001, this.shownAtoms[i].position.y+0.001, this.shownAtoms[i].position.z+0.001 );
+//          this.shownAtoms[i].position.set( this.shownAtoms[i].position.x+0.001, this.shownAtoms[i].position.y+0.001, this.shownAtoms[i].position.z+0.001 );
         }
         this.renderer.render( this.scene, this.camera );
-
-        var self = this;
-        this.renderer.domElement.addEventListener('mousedown', function(event) {
-          alert("click!");
-          var vector = new THREE.Vector3(
-            self.renderer.devicePixelRatio * (event.pageX - this.offsetLeft) / this.width * 2 - 1,
-            -self.renderer.devicePixelRatio * (event.pageY - this.offsetTop) / this.height * 2 + 1,
-            0
-          );
-
-//      			projector.unprojectVector(vector, camera);
-
-          var raycaster = new THREE.Raycaster(
-              self.camera.position,
-              vector.sub(self.camera.position).normalize()
-          );
-
-          var intersects = raycaster.intersectObjects(self.shownAtoms);
-          if (intersects.length) {
-              console.log(intersects[0]);
-          }
-        }, false);
-
+        this.renderer.domElement.addEventListener('mousedown', this.renderData, false);
       },
       setScene: function() {
+        this.windowHeight = window.innerHeight;
+        this.windowWidth = window.innerWidth;
+
         var scene = new THREE.Scene();
-  			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        // (field of view, aspect ratio (element width/element height, near
+        // clipping plane (objects closer than don't show), far clipping plane),)
+  			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth*0.7 / window.innerHeight, 0.1, 1000 );
 
   			var renderer = new THREE.WebGLRenderer();
-  			renderer.setSize( window.innerWidth, window.innerHeight );
-  			document.body.appendChild( renderer.domElement );
+        //true adds pixels???
+  			renderer.setSize( this.windowWidth*0.7, this.windowHeight, true );
+        var container = document.getElementById('page');
+  			container.appendChild( renderer.domElement );
 
-  			var pointLight =
-  			  new THREE.PointLight(0xFFFFFF);
-
-  			// set its position
+  			var pointLight = new THREE.PointLight(0xFFFFFF);
   			pointLight.position.x = 1;
   			pointLight.position.y = 5;
-  			pointLight.position.z = 10;
+  			pointLight.position.z = 300;
 
   			// add to the scene
   			scene.add(pointLight);
-
-  			camera.position.z = 5;
-
+        scene.add( new THREE.AxisHelper( 1000 ) );
+        camera.position.x = 0;
+        camera.position.z = 200;
+        camera.position.y = 100;
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
@@ -205,17 +216,15 @@ window.onload = function () {
       loadRandom: function (number) {
         var i = 0;
         for (i = 0; i < number; i++) {
-          //TODO: getting data from same place it ends up. not good.
           var newAtom = this.atoms[Math.floor(Math.random()*this.atoms.length)];
-          //TODO: different sizes
-          var radius = newAtom.radius/1000;
-          console.log(radius);
+          var radius = newAtom.radius/50;
     			var geometry = new THREE.SphereGeometry( radius, 16, 16 );
-          //TODO: get randomized color
     			var material = new THREE.MeshLambertMaterial( { color: newAtom.modelColor } );
     			var atom = new THREE.Mesh( geometry, material );
           //TODO: set positions randomly around screen
-          atom.position.set( Math.floor(Math.random()*i*0.5), Math.floor(Math.random()*i*0.5), Math.floor(Math.random()*i*0.5) );
+          var plusOrMinus = Math.random() < 0.5 ? -1 : 1;
+          atom.position.set( plusOrMinus*Math.floor(Math.random()*20), plusOrMinus*Math.floor(Math.random()*20), plusOrMinus*Math.floor(Math.random()*20) );
+          atom.userData = newAtom;
     			this.scene.add( atom );
           this.shownAtoms.push(atom);
         }
