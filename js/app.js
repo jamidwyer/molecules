@@ -149,21 +149,21 @@ window.onload = function () {
     methods: {
       renderData: function(event) {
         mouse.x = event.pageX;
-	      mouse.y = - event.pageY;
+        mouse.y = - event.pageY;
         console.log(mouse);
-      	raycaster.setFromCamera( mouse, this.camera );
+        raycaster.setFromCamera( mouse, this.camera );
 
-      	// calculate objects intersecting the picking ray
-      	var intersects = raycaster.intersectObjects( this.shownAtoms );
+        // calculate objects intersecting the picking ray
+        var intersects = raycaster.intersectObjects( this.shownAtoms );
         console.log(this.shownAtoms);
         console.log(intersects);
 
-      	for ( var i = 0; i < intersects.length; i++ ) {
-      		intersects[ i ].object.material.color.set( 0xff0000 );
+        for ( var i = 0; i < intersects.length; i++ ) {
+          intersects[ i ].object.material.color.set( 0xff0000 );
           console.log(intersects[0].object.userData.name);
-      	}
+        }
 
-      	this.renderer.render( this.scene, this.camera );
+        this.renderer.render( this.scene, this.camera );
 
       },
       renderScene: function() {
@@ -189,21 +189,21 @@ window.onload = function () {
         var scene = new THREE.Scene();
         // (field of view, aspect ratio (element width/element height, near
         // clipping plane (objects closer than don't show), far clipping plane),)
-  			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth*0.7 / window.innerHeight, 0.1, 1000 );
+        var camera = new THREE.PerspectiveCamera( 75, window.innerWidth*0.7 / window.innerHeight, 0.1, 1000 );
 
-  			var renderer = new THREE.WebGLRenderer();
+        var renderer = new THREE.WebGLRenderer();
         //true adds pixels???
-  			renderer.setSize( this.windowWidth*0.7, this.windowHeight, true );
+        renderer.setSize( this.windowWidth*0.7, this.windowHeight, true );
         var container = document.getElementById('page');
-  			container.appendChild( renderer.domElement );
+        container.appendChild( renderer.domElement );
 
-  			var pointLight = new THREE.PointLight(0xFFFFFF);
-  			pointLight.position.x = 1;
-  			pointLight.position.y = 5;
-  			pointLight.position.z = 300;
+        var pointLight = new THREE.PointLight(0xFFFFFF);
+        pointLight.position.x = 1;
+        pointLight.position.y = 5;
+        pointLight.position.z = 300;
 
-  			// add to the scene
-  			scene.add(pointLight);
+        // add to the scene
+        scene.add(pointLight);
         scene.add( new THREE.AxisHelper( 1000 ) );
         camera.position.x = 0;
         camera.position.z = 200;
@@ -218,14 +218,14 @@ window.onload = function () {
         for (i = 0; i < number; i++) {
           var newAtom = this.atoms[Math.floor(Math.random()*this.atoms.length)];
           var radius = newAtom.radius/50;
-    			var geometry = new THREE.SphereGeometry( radius, 16, 16 );
-    			var material = new THREE.MeshLambertMaterial( { color: newAtom.modelColor } );
-    			var atom = new THREE.Mesh( geometry, material );
+          var geometry = new THREE.SphereGeometry( radius, 16, 16 );
+          var material = new THREE.MeshLambertMaterial( { color: newAtom.modelColor } );
+          var atom = new THREE.Mesh( geometry, material );
           //TODO: set positions randomly around screen
           var plusOrMinus = Math.random() < 0.5 ? -1 : 1;
           atom.position.set( plusOrMinus*Math.floor(Math.random()*20), plusOrMinus*Math.floor(Math.random()*20), plusOrMinus*Math.floor(Math.random()*20) );
           atom.userData = newAtom;
-    			this.scene.add( atom );
+          this.scene.add( atom );
           this.shownAtoms.push(atom);
         }
       }
